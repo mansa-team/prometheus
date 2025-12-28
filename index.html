@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prometheus - Financial AI Chatbot</title>
+    
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            user-select: none;
+            cursor: default;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header img {
+            height: 72px;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #777;
+        }
+
+        .chat-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 600px;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            background: #050505;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .chat-container {
+            * {
+                user-select: text;
+            }
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #2a2a2a;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 14px 16px;
+            border-radius: 6px;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+
+        .message.user .message-content {
+            background: #0d0;
+            color: #000;
+            font-weight: 500;
+            border-radius: 6px 0 6px 6px;
+        }
+
+        .message.assistant .message-content {
+            background: #0a0a0a;
+            color: #ccc;
+            border: 1px solid #1a1a1a;
+            border-radius: 0 6px 6px 6px;
+        }
+
+        .message-content h1,
+        .message-content h2,
+        .message-content h3 {
+            color: #0d0;
+            margin: 14px 0 8px 0;
+            font-size: 1.05em;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .message-content h3 {
+            font-size: 1em;
+            border-left: 2px solid #0d0;
+            padding-left: 8px;
+            margin: 12px 0 6px 0;
+        }
+
+        .message-content p {
+            margin: 6px 0;
+            color: #aaa;
+        }
+
+        .message-content strong {
+            color: #0d0;
+            font-weight: 600;
+        }
+
+        .message-content a {
+            color: #0d0;
+            text-decoration: none;
+            border-bottom: 1px solid #0d0;
+            transition: opacity 0.2s;
+        }
+
+        .message-content a:hover {
+            opacity: 0.7;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 380px;
+            margin: 12px 0;
+            background: #0a0a0a;
+            border-radius: 6px;
+            border: 1px solid #1a1a1a;
+        }
+
+        .input-area {
+            padding: 16px 24px 20px 24px;
+            border-top: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 700px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .input-field {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 24px;
+            padding: 0 16px;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:hover {
+            border-color: #444;
+        }
+
+        .input-field:focus-within {
+            border-color: #0d0;
+            background: #0f0f0f;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+        }
+
+        .input-area input::placeholder {
+            color: #666;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 8px;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: #0d0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+            font-size: 20px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: rgba(0, 221, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+        .send-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            color: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .send-button .material-icons {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header img {
+                height: 56px;
+                margin-bottom: 16px;
+            }
+
+            .input-wrapper {
+                max-width: 100%;
+            }
+
+            .message-content {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="assets/logo.png" alt="Mansa Logo">
+            <h1>Prometheus</h1>
+            <p>Financial Intelligence powered by Mansa</p>
+        </div>
+
+        <div class="chat-wrapper">
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="input-field">
+                        <input 
+                            type="text" 
+                            id="userInput" 
+                            placeholder="Digite sua pergunta sobre ações e análises financeiras..."
+                            autocomplete="off"
+                        >
+                        <button id="sendBtn" class="send-button" title="Enviar mensagem">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        const sampleQuery = "pode me mostrar os resultados do banco do brasil em lucros liquidos no ano de 2021 e me explicar sua diferenca com os resultados de 2025, tambem me mostre os dados da petrobras no mesmo periodo";
+        const sampleResponse = `A análise a seguir abrange os resultados financeiros do Banco do Brasil (**BBAS3**) e da Petrobras (**PETR4**) com foco nos lucros líquidos, utilizando os dados mais recentes disponíveis em 28/12/2025.
+
+### Análise do Banco do Brasil (**BBAS3**)
+
+O Banco do Brasil (**BBAS3**) demonstrou uma trajetória de crescimento em seu lucro líquido entre 2021 e 2024. Em **2021**, o lucro líquido atingiu **R$ 19.7 bilhões**. Houve uma expansão notável em **2022**, com o lucro líquido subindo para **R$ 29.8 bilhões**. Essa tendência positiva continuou em **2023**, alcançando **R$ 33.2 bilhões**. Em **2024**, observou-se uma leve retração, com o lucro líquido registrando **R$ 29.2 bilhões**.
+
+A diferença entre os resultados de 2021 e 2024 para o **BBAS3** é de um aumento de **R$ 9.5 bilhões**, o que representa um crescimento de aproximadamente **47,9%**. Essa expansão pode ser atribuída a otimização da carteira de crédito, gestão de custos eficiente e expansão de serviços digitais.
+
+<chart config='{"type":"scatter","mode":"lines","x":["2021","2022","2023","2024"],"y":[19.7,29.8,33.2,29.2],"name":"BBAS3","line":{"color":"#0d0","width":3},"fill":"tozeroy","fillcolor":"rgba(0,221,0,0.1)"}' />
+
+### Análise da Petrobras (**PETR4**)
+
+A Petrobras (**PETR4**) apresentou resultados de lucro líquido expressivos e voláteis no período analisado. Em **2021**, a companhia registrou um lucro líquido de **R$ 106.7 bilhões**. Em **2022**, houve um salto espetacular, com o lucro líquido alcançando **R$ 188.3 bilhões**. No entanto, **2023** marcou uma queda significativa, com o lucro líquido caindo para **R$ 124.6 bilhões**. A tendência de retração se acentuou em **2024**, com o lucro líquido caindo para **R$ 36.6 bilhões**.
+
+A diferença entre os resultados de 2021 e 2024 para a **PETR4** é uma queda de **R$ 70.1 bilhões**, o que representa uma diminuição de aproximadamente **65,7%**. Essa variação está fortemente ligada à volatilidade dos preços do petróleo no mercado internacional.
+
+<chart config='{"type":"scatter","mode":"lines","x":["2021","2022","2023","2024"],"y":[106.7,188.3,124.6,36.6],"name":"PETR4","line":{"color":"#0d0","width":3},"fill":"tozeroy","fillcolor":"rgba(0,221,0,0.1)"}' />
+
+Esta análise é baseada em dados históricos e não constitui recomendação de compra ou venda.`;
+
+        function initializeChat() {
+            addMessage(sampleQuery, 'user');
+            setTimeout(() => {
+                addLoadingMessage();
+                setTimeout(() => {
+                    removeLoadingMessage();
+                    addMessage(sampleResponse, 'assistant');
+                }, 1500);
+            }, 400);
+        }
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            if (sender === 'assistant') {
+                contentDiv.innerHTML = parseContentWithCharts(content);
+            } else {
+                contentDiv.textContent = content;
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (sender === 'assistant') {
+                setTimeout(() => renderCharts(contentDiv), 100);
+            }
+        }
+
+        function addLoadingMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.id = 'loadingMessage';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeLoadingMessage() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        function parseContentWithCharts(content) {
+            const chartRegex = /<chart\s+config='([^']*)'\s*\/>/g;
+            let htmlContent = content;
+            const charts = [];
+            let match;
+
+            while ((match = chartRegex.exec(content)) !== null) {
+                charts.push(match[1]);
+            }
+
+            htmlContent = htmlContent.replace(/<chart\s+config='[^']*'\s*\/>/g, '<div class="chart-container" data-chart-id="CHART_PLACEHOLDER"></div>');
+            htmlContent = marked.parse(htmlContent);
+
+            let chartIndex = 0;
+            htmlContent = htmlContent.replace(/data-chart-id="CHART_PLACEHOLDER"/g, () => {
+                return `data-chart-config='${charts[chartIndex++]}'`;
+            });
+
+            return htmlContent;
+        }
+
+        function renderCharts(contentDiv) {
+            const chartElements = contentDiv.querySelectorAll('[data-chart-config]');
+            chartElements.forEach((element) => {
+                try {
+                    const configStr = element.getAttribute('data-chart-config');
+                    const config = JSON.parse(configStr);
+                    
+                    const trace = {
+                        x: config.x,
+                        y: config.y,
+                        type: config.type || 'scatter',
+                        mode: config.mode || 'lines',
+                        name: config.name,
+                        line: config.line,
+                        fill: config.fill,
+                        fillcolor: config.fillcolor,
+                        hovertemplate: '<b>%{fullData.name}</b><br>%{x}<br>R$ %{y:.1f}B<extra></extra>'
+                    };
+
+                    const layout = {
+                        paper_bgcolor: '#0a0a0a',
+                        plot_bgcolor: '#0a0a0a',
+                        font: { color: '#888', family: 'Inter, Arial', size: 11 },
+                        margin: { t: 10, b: 30, l: 50, r: 15 },
+                        xaxis: {
+                            gridcolor: '#1a1a1a',
+                            showgrid: true,
+                            zeroline: false,
+                            color: '#555'
+                        },
+                        yaxis: {
+                            gridcolor: '#1a1a1a',
+                            zeroline: false,
+                            color: '#555'
+                        },
+                        hovermode: 'x unified',
+                        showlegend: false
+                    };
+
+                    Plotly.newPlot(element, [trace], layout, { responsive: true, displayModeBar: false });
+                } catch (error) {
+                    console.error('Error rendering chart:', error);
+                    element.innerHTML = '<p style="color: #f44;">Erro ao renderizar gráfico</p>';
+                }
+            });
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            updateSendButtonState();
+
+            addLoadingMessage();
+        }
+
+        function updateSendButtonState() {
+            const hasText = userInput.value.trim().length > 0;
+            sendBtn.disabled = !hasText;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        userInput.addEventListener('input', updateSendButtonState);
+
+        initializeChat();
+    </script>
+</body>
+</html>
