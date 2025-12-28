@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prometheus - Financial AI Chatbot</title>
+    
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            user-select: none;
+            cursor: default;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+
+            img {
+                height: 80px;
+                margin-bottom: 24px;
+                opacity: 0.95;
+            }
+
+            h1 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 6px;
+                letter-spacing: -0.5px;
+            }
+
+            p {
+                font-size: 13px;
+                color: #777;
+            }
+        }
+
+        .chat-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 600px;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            background: #050505;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+
+            * {
+                user-select: text;
+            }
+
+            &:-webkit-scrollbar {
+                width: 8px;
+            }
+
+            &:-webkit-scrollbar {
+                width: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #0a0a0a;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #1a1a1a;
+                border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #2a2a2a;
+            }
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-content {
+            max-width: 90%;
+            padding: 14px 16px;
+            border-radius: 6px;
+            word-wrap: break-word;
+            line-height: 1.6;
+            font-size: 13px;
+            min-width: 400px;
+        }
+
+        .message.user .message-content {
+            background: #0d0;
+            color: #000;
+            font-weight: 500;
+            border-radius: 6px 0 6px 6px;
+            max-width: 80%;
+            min-width: auto;
+        }
+
+        .message.assistant .message-content {
+            background: #0a0a0a;
+            color: #ccc;
+            border: 1px solid #1a1a1a;
+            border-radius: 0 6px 6px 6px;
+        }
+
+        .message-content h1,
+        .message-content h2,
+        .message-content h3,
+        .message-content h4,
+        .message-content h5,
+        .message-content h6 {
+            color: #0d0;
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .message-content h1 {
+            font-size: 1.4em;
+        }
+
+        .message-content h2 {
+            font-size: 1.3em;
+        }
+
+        .message-content h3 {
+            font-size: 1.15em;
+            border-left: 2px solid #0d0;
+            padding-left: 8px;
+        }
+
+        .message-content h4 {
+            font-size: 1.05em;
+        }
+
+        .message-content p {
+            margin: 8px 0;
+            color: #aaa;
+        }
+
+        .message-content strong {
+            color: #0d0;
+            font-weight: 600;
+        }
+
+        .message-content em {
+            color: #bbb;
+            font-style: italic;
+        }
+
+        .message-content a {
+            color: #0d0;
+            text-decoration: none;
+            border-bottom: 1px solid #0d0;
+            transition: opacity 0.2s;
+        }
+
+        .message-content a:hover {
+            opacity: 0.7;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 8px 0 8px 20px;
+            color: #aaa;
+        }
+
+        .message-content ul li,
+        .message-content ol li {
+            margin: 4px 0;
+        }
+
+        .message-content ul li {
+            list-style: disc;
+        }
+
+        .message-content ol li {
+            list-style: decimal;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #0d0;
+            padding-left: 12px;
+            margin: 8px 0;
+            color: #999;
+            font-style: italic;
+        }
+
+        .message-content code {
+            background: #1a1a1a;
+            color: #0d0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content pre {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .message-content pre code {
+            background: none;
+            color: #0d0;
+            padding: 0;
+        }
+
+        .message-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.95em;
+        }
+
+        .message-content table th {
+            background: #1a1a1a;
+            color: #0d0;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #2a2a2a;
+            font-weight: 600;
+        }
+
+        .message-content table td {
+            padding: 8px;
+            border: 1px solid #2a2a2a;
+            color: #aaa;
+        }
+
+        .message-content table tr:hover {
+            background: #0a0a0a;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .chart-container {
+            width: 100%;
+            min-height: 400px;
+            height: auto;
+            margin: 16px 0;
+            background: #0a0a0a;
+            border-radius: 6px;
+            border: 1px solid #1a1a1a;
+        }
+
+        .input-area {
+            padding: 16px 24px 20px 24px;
+            border-top: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+
+            &::placeholder {
+                color: #666;
+            }
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 700px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .input-field {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 24px;
+            padding: 0 16px;
+            transition: all 0.2s ease;
+
+            &:hover {
+                border-color: #444;
+            }
+
+            &:focus-within {
+                border-color: #0d0;
+                background: #0f0f0f;
+            }
+        }
+
+        .send-button {
+            position: absolute;
+            right: 8px;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: #0d0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+            font-size: 20px;
+
+            .material-icons {
+                font-size: 20px;
+                line-height: 1;
+            }
+
+            &:hover:not(:disabled) {
+                background: rgba(0, 221, 0, 0.1);
+                transform: scale(1.05);
+            }
+
+            &:active:not(:disabled) {
+                transform: scale(0.95);
+            }
+
+            &:disabled {
+                color: #555;
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header img {
+                height: 56px;
+                margin-bottom: 16px;
+            }
+
+            .input-wrapper {
+                max-width: 100%;
+            }
+
+            .message-content {
+                max-width: 100%;
+                min-width: 250px;
+            }
+
+            .chart-container {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="assets/logo.png" alt="Mansa Logo">
+            <h1>Prometheus</h1>
+            <p>Financial Intelligence powered by Mansa</p>
+        </div>
+
+        <div class="chat-wrapper">
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="input-field">
+                        <input 
+                            type="text" 
+                            id="userInput" 
+                            placeholder="Digite sua pergunta sobre acoes e analises financeiras..."
+                            autocomplete="off"
+                        >
+                        <button id="sendBtn" class="send-button" title="Enviar mensagem">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        const API_URL = 'http://localhost:3201/rag';
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + sender;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            if (sender === 'assistant') {
+                try {
+                    let cleanContent = content
+                        .replace(/^\s+/gm, '')
+                        .replace(/\n\s*\n/g, '\n\n')
+                        .trim();
+                    
+                    let htmlContent = marked.parse(cleanContent);
+                    htmlContent = parseContentWithCharts(htmlContent);
+                    contentDiv.innerHTML = htmlContent;
+                } catch (error) {
+                    contentDiv.textContent = content;
+                }
+            } else {
+                contentDiv.textContent = content;
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (sender === 'assistant') {
+                setTimeout(function() {
+                    renderCharts(contentDiv);
+                }, 200);
+            }
+        }
+
+        function addLoadingMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.id = 'loadingMessage';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeLoadingMessage() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        function parseContentWithCharts(htmlContent) {
+            const chartRegex = /<chart\s+config='([^']*)'\s*\/>/g;
+            const charts = [];
+            let match;
+
+            while ((match = chartRegex.exec(htmlContent)) !== null) {
+                charts.push(match[1]);
+            }
+
+            htmlContent = htmlContent.replace(/<chart\s+config='[^']*'\s*\/>/g, '<div class="chart-container" data-chart-placeholder="true"></div>');
+
+            let chartIndex = 0;
+            htmlContent = htmlContent.replace(/data-chart-placeholder="true"/g, function() {
+                if (chartIndex < charts.length) {
+                    return 'data-chart-config=\'' + charts[chartIndex++] + '\'';
+                }
+                return 'data-chart-placeholder="true"';
+            });
+
+            return htmlContent;
+        }
+
+        function renderCharts(contentDiv) {
+            const chartElements = contentDiv.querySelectorAll('[data-chart-config]');
+
+            chartElements.forEach(function(element, index) {
+                try {
+                    const configStr = element.getAttribute('data-chart-config');
+                    const config = JSON.parse(configStr);
+
+                    const trace = {
+                        x: config.data.labels,
+                        y: config.data.datasets[0].data,
+                        type: config.type || 'bar',
+                        name: config.data.datasets[0].label,
+                        marker: {
+                            color: config.data.datasets[0].backgroundColor || '#0d0',
+                            line: {
+                                color: config.data.datasets[0].borderColor || '#0d0',
+                                width: 2
+                            }
+                        },
+                        hovertemplate: '<b>%{fullData.name}</b><br>%{x}<br>%{y:,.0f}<extra></extra>'
+                    };
+
+                    const layout = {
+                        paper_bgcolor: '#0a0a0a',
+                        plot_bgcolor: '#0a0a0a',
+                        font: { color: '#888', family: 'Inter, Arial', size: 11 },
+                        margin: { t: 40, b: 30, l: 80, r: 15 },
+                        xaxis: {
+                            gridcolor: '#1a1a1a',
+                            showgrid: false,
+                            zeroline: false,
+                            color: '#555'
+                        },
+                        yaxis: {
+                            gridcolor: '#1a1a1a',
+                            zeroline: false,
+                            color: '#555'
+                        },
+                        hovermode: 'x unified',
+                        showlegend: true,
+                        title: {
+                            text: config.options?.plugins?.title?.text || '',
+                            font: { size: 14, color: '#0d0' }
+                        }
+                    };
+
+                    Plotly.newPlot(element, [trace], layout, { responsive: true, displayModeBar: false });
+                } catch (error) {
+                    element.innerHTML = '<p style="color: #f44; padding: 20px; text-align: center;">Erro ao renderizar grafico</p>';
+                }
+            });
+        }
+
+        async function fetchRAGResponse(prompt) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(function() {
+                    controller.abort();
+                }, 60000);
+                
+                const response = await fetch(API_URL + '?text=' + encodeURIComponent(prompt), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error('API error: ' + response.status);
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.response) {
+                    return data.response;
+                } else if (data.response) {
+                    return data.response;
+                } else {
+                    return 'Erro: ' + (data.error || 'Resposta vazia');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return 'Timeout: A API demorou mais de 60 segundos para responder. Tente novamente.';
+                }
+                return 'Erro ao conectar: ' + error.message;
+            }
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            updateSendButtonState();
+
+            addLoadingMessage();
+
+            fetchRAGResponse(message).then(function(response) {
+                removeLoadingMessage();
+                addMessage(response, 'assistant');
+            }).catch(function(error) {
+                removeLoadingMessage();
+                addMessage('Erro inesperado: ' + error.message, 'assistant');
+            });
+        }
+
+        function updateSendButtonState() {
+            const hasText = userInput.value.trim().length > 0;
+            sendBtn.disabled = !hasText;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        userInput.addEventListener('input', updateSendButtonState);
+
+        updateSendButtonState();
+    </script>
+</body>
+</html>
