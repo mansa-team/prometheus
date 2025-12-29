@@ -15,6 +15,7 @@ import numpy as np
 from sqlalchemy import create_engine, text
 from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.security import APIKeyHeader
+from fastapi.middleware.cors import CORSMiddleware
 
 import uvicorn
 
@@ -46,5 +47,8 @@ class Config:
         'KEY.SYSTEM': os.getenv('PROMETHEUS_KEY.SYSTEM'),
         'KEY': os.getenv('PROMETHEUS_PRIVATE.KEY'),
 
+        'LOCAL.AI': os.getenv('PROMETHEUS_LOCAL.AI'),
+        'MODEL.NAME': os.getenv('PROMETHEUS_MODEL.NAME'),
+        'MODEL.DEVICE': os.getenv('PROMETHEUS_MODEL.DEVICE'),
         'GEMINI_API.KEY': os.getenv('GEMINI_API.KEY'),
     }

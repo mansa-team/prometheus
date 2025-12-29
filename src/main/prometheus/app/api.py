@@ -1,11 +1,9 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from imports import *
-from main.app.ag import executeWorkflow
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import APIKeyHeader
+from main.prometheus.app.generation import executeWorkflow
 
 APIKey_Header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
@@ -35,11 +33,7 @@ class API:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        
-        self._db_engine = create_engine(
-            f"mysql+pymysql://{Config.MYSQL['USER']}:{Config.MYSQL['PASSWORD']}@{Config.MYSQL['HOST']}/{Config.MYSQL['DATABASE']}",
-            poolclass=None, echo=False
-        )
+
         self.setupRoutes()
     
     def setupRoutes(self):
@@ -56,7 +50,7 @@ class API:
         async def root():
             return {"message": "Prometheus API"}
         
-        @self.app.get("/api/key")
+        @self.app.get("/rag/key")
         async def APIKeyTest(api_key: str = Depends(verifyAPIKey)):
             return {"message": "API", "secured": True}
         

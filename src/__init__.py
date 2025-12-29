@@ -1,6 +1,5 @@
 from imports import *
-
-from main.service import Service as Prometheus_Service
+from main.prometheus.service import Service as Prometheus
 
 def initialize(module, config):
     print("=" * 60)
@@ -11,7 +10,7 @@ def initialize(module, config):
     #
     if module == "PROMETHEUS":
         if config['HOST'] in LOCALHOST_ADDRESSES:
-            Prometheus_Service.initialize(
+            Prometheus.initialize(
                 "Mansa (Prometheus)",
                 int(config['PORT']),
             )
@@ -47,6 +46,9 @@ if __name__ == "__main__":
     if response.status_code == 200:
         print(f"Mansa (Stocks API) connected to http://{Config.STOCKS_API['HOST']}:{Config.STOCKS_API['PORT']}! ({latency:.2f}ms)")
     else: print(f"Mansa (Stocks API) returned status {response.status_code}")
+
+    if Config.PROMETHEUS['LOCAL.AI'] == "TRUE":
+        pass
 
     if Config.PROMETHEUS['ENABLED'] == "TRUE":
         initialize("PROMETHEUS", Config.PROMETHEUS)

@@ -1,9 +1,9 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from imports import *
-from main.app.gemini import Client
+from main.gemini import Client
 
 current_date = (datetime.now() - timedelta(days=1)).strftime("%d/%m/%Y")
 current_year = datetime.now().year

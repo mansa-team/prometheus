@@ -1,9 +1,9 @@
 import sys
 import os
 import threading
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from main.app.api import API
+from main.prometheus.app.api import API
 
 class Service:
     instances = {}
