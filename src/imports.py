@@ -48,7 +48,7 @@ class Config:
         'KEY': os.getenv('PROMETHEUS_PRIVATE.KEY'),
 
         'LOCAL.AI': os.getenv('PROMETHEUS_LOCAL.AI'),
-        'MODEL.NAME': os.getenv('PROMETHEUS_MODEL.NAME'),
+        'MODEL.PATH': os.getenv('PROMETHEUS_MODEL.PATH'),
         'MODEL.DEVICE': os.getenv('PROMETHEUS_MODEL.DEVICE'),
         'GEMINI_API.KEY': os.getenv('GEMINI_API.KEY'),
     }
