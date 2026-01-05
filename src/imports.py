@@ -22,7 +22,6 @@ import uvicorn
 load_dotenv()
 
 LOCALHOST_ADDRESSES = ['localhost', '127.0.0.1', '0.0.0.0', 'None', None]
-
 class Config:
     MYSQL = {
         'USER': os.getenv('MYSQL_USER'),
