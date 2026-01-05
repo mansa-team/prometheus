@@ -1,16 +1,10 @@
 from imports import *
-from main.prometheus.service import Service as Prometheus_Client
+from src.main.service import Service as Prometheus_Client
 
 def initialize(module, config):
     print("=" * 60)
     print(f"Configuring {module}\n")
-
-    #
-    #$ LOCAL AI
-    #
-    if module == "LOCAL_AI":
-        pass
-        
+  
     #
     #$ PROMETHEUS
     #
@@ -54,9 +48,6 @@ if __name__ == "__main__":
     if response.status_code == 200:
         print(f"Mansa (Stocks API) connected to http://{Config.STOCKS_API['HOST']}:{Config.STOCKS_API['PORT']}! ({latency:.2f}ms)")
     else: print(f"Mansa (Stocks API) returned status {response.status_code}")
-
-    if Config.PROMETHEUS['LOCAL.AI'] == "TRUE":
-        initialize("LOCAL_AI", Config.PROMETHEUS)
 
     if Config.PROMETHEUS['ENABLED'] == "TRUE":
         initialize("PROMETHEUS", Config.PROMETHEUS)

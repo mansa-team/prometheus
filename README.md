@@ -70,10 +70,7 @@ graph TD
 ```
 
 ## TODO
-- [ ] Use localhosted Models like Gemma
 - [ ] CORS environment validation to prevent API requests outside the website
-- [ ] Chat history system
-- [ ] Per-user chat system
 
 ## License
 Mansa Team's MODIFIED GPL 3.0 License. See LICENSE for details.

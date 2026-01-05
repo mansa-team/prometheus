@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from imports import *
-from main.prometheus.app.generation import executeWorkflow
+from main.app.generation import executeWorkflow
 
 APIKey_Header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
