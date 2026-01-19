@@ -101,26 +101,16 @@ def executeWorkflow(userQuery):
 
     APIResponse = {}
     for idx, i in enumerate(responseData.itertuples()):
-        if i.type == 'historical':
-            APIResponse[idx] = requests.get(
-                f'http://{Config.STOCKS_API["HOST"]}:{Config.STOCKS_API["PORT"]}/api/{i.type}',
-                params={
-                    'search': i.search,
-                    'fields': i.fields,
-                    'years': f"{i.date_start},{i.date_end}"
-                },
-                timeout=10
-            )
-        else:
-            APIResponse[idx] = requests.get(
-                f'http://{Config.STOCKS_API["HOST"]}:{Config.STOCKS_API["PORT"]}/api/{i.type}',
-                params={
-                    'search': i.search,
-                    'fields': i.fields,
-                    'dates': f'{i.date_start},{i.date_end}'
-                },
-                timeout=10
-            )
+        APIResponse[idx] = requests.get(
+            f'http://{Config.STOCKS_API["HOST"]}:{Config.STOCKS_API["PORT"]}/api/{i.type}',
+            params={
+                'search': i.search,
+                'fields': i.fields,
+                'dates': f"{i.date_start},{i.date_end}"
+            },
+            timeout=10
+        )
+
 
     for idx, response in APIResponse.items():
         json.dumps(response.json().get('data', []), ensure_ascii=False, indent=2)

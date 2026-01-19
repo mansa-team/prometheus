@@ -71,6 +71,7 @@ graph TD
 
 ## TODO
 - [ ] CORS environment validation to prevent API requests outside the website
+- [ ] Improve the date handling from the model and tune it a bit more for Financial Analysis and make it not mention the STOCKS API as an entity
 
 ## License
 Mansa Team's MODIFIED GPL 3.0 License. See LICENSE for details.
