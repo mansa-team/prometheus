@@ -1,5 +1,5 @@
 from imports import *
-from src.main.service import Service as Prometheus_Client
+from main.service import Service as Prometheus_Service
 
 def initialize(module, config):
     print("=" * 60)
@@ -10,7 +10,7 @@ def initialize(module, config):
     #
     if module == "PROMETHEUS":
         if config['HOST'] in LOCALHOST_ADDRESSES:
-            Prometheus_Client.initialize(
+            Prometheus_Service.initialize(
                 "Mansa (Prometheus)",
                 int(config['PORT']),
             )
@@ -32,8 +32,6 @@ def initialize(module, config):
                                 
         except requests.exceptions.Timeout:
             print(f"Mansa ({module}) connection timeout (5s)")
-        except requests.exceptions.ConnectionError:
-            print(f"Cannot connect to Mansa ({module}) to http://{config['HOST']}:{config['PORT']}")
         except Exception as e:
             print(f"Mansa ({module}) connection failed: {e}")
 
