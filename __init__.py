@@ -15,11 +15,11 @@ def initialize(module, config):
                 int(config['PORT']),
             )
         
-            time.sleep(2)
-
     #
     #$ Connection Test
     #
+    time.sleep(2)
+    
     if module == "PROMETHEUS":
         try:
             start_time = time.time()

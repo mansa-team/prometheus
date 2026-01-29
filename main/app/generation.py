@@ -79,8 +79,7 @@ def executeWorkflow(userQuery):
         """.replace("{CURRENT_DATE}", current_date).replace("{CURRENT_YEAR}", str(current_year)).replace("{LAST_YEAR}", str(last_year))
 
     modelResponse['STAGE 1'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 1'], model="gemini-2.5-flash-lite")
-    #print(modelResponse['STAGE 1'])
-
+    
     #
     #$ Stage 2
     #$ Getting the Stage 1 response data the STOCKS API request that will be used to give further information for the final response
@@ -118,8 +117,6 @@ def executeWorkflow(userQuery):
     APIResponse = [item for api_response in APIResponse.values() for item in api_response.json().get('data', [])]
     APIResponse = json.dumps(APIResponse, ensure_ascii=False, indent=2)
 
-    #print(APIResponse)
-
     #
     #$ Stage 3
     #$ Give the final prompt to the model that will generate a markdown/chart response for the user
@@ -136,7 +133,7 @@ def executeWorkflow(userQuery):
     INSTRUÇÕES OBRIGATÓRIAS DE RACIOCÍNIO E FORMATO (PARA RESPOSTAS LONGAS):
 
     1. ANÁLISE TÉCNICA EXTENSA (STRICT):
-    - Não se limite a listar dados. Discorra sobre cada métrica importante fornecida em "STOCKS API Data".
+    - Não se limite a listar dados. Discorra sobre cada métrica importante fornecida em "STOCKS API Data" mas nunca mencione a existencia da STOCKS API, considere como se fosse uma informação que você  já possui.
     - CONTEXTUALIZAÇÃO: Se o P/L está em 5x, explique o que isso significa para o setor específico da empresa. Compare o P/VP com o valor patrimonial real.
     - CORRELAÇÃO DE MÉTRICAS: Relacione a lucratividade (ROE) com o endividamento. Um ROE alto com dívida alta tem um peso diferente de um ROE alto com caixa líquido.
     - Use **negrito** para todos os tickers (ex: **VALE3**, **PETR4**) e valores numéricos significativos.
@@ -180,8 +177,6 @@ def executeWorkflow(userQuery):
     O **Dividend Yield de 12.5%** projeta um carrego de posição altamente atraente. No entanto, o investidor deve monitorar os riscos de intervenção na política de preços e a volatilidade do Brent no mercado externo.
     """.replace("{CURRENT_DATE}", current_date)
     sysPrompt['STAGE 3'] = sysPrompt['STAGE 3'].replace("{API_RESPONSE}", APIResponse)
-
     modelResponse['STAGE 3'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 3'], model="gemini-2.5-flash-lite")
-    #print(modelResponse['STAGE 3'])
 
     return modelResponse['STAGE 3']
