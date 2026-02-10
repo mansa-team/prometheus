@@ -68,6 +68,7 @@ def executeWorkflow(userQuery):
         5. NUNCA adicione backticks (```) ou o nome da linguagem na resposta.
         6. Para datas, use SEMPRE o formato YYYY-MM-DD (ex: 2025-12-27) ou YYYY (ex: 2024).
         7. SEMPRE substitua {CURRENT_YEAR} por {LAST_YEAR} em dados históricos.
+        8. NÃO INCLUA NENHUM "fields" que não esteja EXPLICIAMENTE incluso na Lista de Campos Válidos
 
         Exemplos de Comportamento:
         * Input: "Qual foi o preço das ações da WEG ontem?" -> [{"search":"WEGE3","fields":"PRECO","type":"fundamental","date_start":"2025-12-27","date_end":"2025-12-27"}]
@@ -79,7 +80,10 @@ def executeWorkflow(userQuery):
         """.replace("{CURRENT_DATE}", current_date).replace("{CURRENT_YEAR}", str(current_year)).replace("{LAST_YEAR}", str(last_year))
 
     modelResponse['STAGE 1'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 1'], model="gemini-2.5-flash-lite")
-    
+
+
+    #print(modelResponse['STAGE 1'])
+
     #
     #$ Stage 2
     #$ Getting the Stage 1 response data the STOCKS API request that will be used to give further information for the final response
@@ -177,6 +181,8 @@ def executeWorkflow(userQuery):
     O **Dividend Yield de 12.5%** projeta um carrego de posição altamente atraente. No entanto, o investidor deve monitorar os riscos de intervenção na política de preços e a volatilidade do Brent no mercado externo.
     """.replace("{CURRENT_DATE}", current_date)
     sysPrompt['STAGE 3'] = sysPrompt['STAGE 3'].replace("{API_RESPONSE}", APIResponse)
-    modelResponse['STAGE 3'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 3'], model="gemini-2.5-flash-lite")
+    modelResponse['STAGE 3'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 3'], model="gemini-3-flash-preview")
+
+    #print(modelResponse['STAGE 3'])
 
     return modelResponse['STAGE 3']
