@@ -78,10 +78,7 @@ def executeWorkflow(userQuery):
         * Input: "Como eu posso calcular o valor intrinseco de uma acao" -> Output: []
         * Input: "Oi, pode me ajudar?" -> Output: []
         """.replace("{CURRENT_DATE}", current_date).replace("{CURRENT_YEAR}", str(current_year)).replace("{LAST_YEAR}", str(last_year))
-
     modelResponse['STAGE 1'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 1'], model="gemini-2.5-flash-lite")
-
-
     #print(modelResponse['STAGE 1'])
 
     #
@@ -89,16 +86,9 @@ def executeWorkflow(userQuery):
     #$ Getting the Stage 1 response data the STOCKS API request that will be used to give further information for the final response
     #
     responseData = """
-    [
-        {
-            "search": "WEGE3",
-            "fields": "PRECO",
-            "type": "fundamental",
-            "date_start": "2025-12-25",
-            "date_end": "2025-12-25"
-        }
-    ]
+    [{"search": "WEGE3", "fields": "LUCRO LIQUIDO", "type": "historical", "date_start": "2014", "date_end": "2024"}, {"search": "PETR3", "fields": "LUCRO LIQUIDO", "type": "historical", "date_start": "2014", "date_end": "2024"}]
     """
+    #responseData = json.loads(responseData)
     responseData = json.loads(modelResponse['STAGE 1'])
     responseData = pd.DataFrame(responseData)
 
@@ -120,6 +110,7 @@ def executeWorkflow(userQuery):
 
     APIResponse = [item for api_response in APIResponse.values() for item in api_response.json().get('data', [])]
     APIResponse = json.dumps(APIResponse, ensure_ascii=False, indent=2)
+    #print(APIResponse)
 
     #
     #$ Stage 3
@@ -181,8 +172,7 @@ def executeWorkflow(userQuery):
     O **Dividend Yield de 12.5%** projeta um carrego de posição altamente atraente. No entanto, o investidor deve monitorar os riscos de intervenção na política de preços e a volatilidade do Brent no mercado externo.
     """.replace("{CURRENT_DATE}", current_date)
     sysPrompt['STAGE 3'] = sysPrompt['STAGE 3'].replace("{API_RESPONSE}", APIResponse)
-    modelResponse['STAGE 3'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 3'], model="gemini-3-flash-preview")
-
+    modelResponse['STAGE 3'] = client.generateContent(userQuery, system_instruction=sysPrompt['STAGE 3'], model="gemini-2.5-flash-lite")
     #print(modelResponse['STAGE 3'])
 
     return modelResponse['STAGE 3']

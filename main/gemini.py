@@ -9,24 +9,27 @@ class Client:
         self.apiKey = apiKey
 
     def generateContent(self, prompt: str, system_instruction: Optional[str] = None, model: str = "gemini-2.5-flash-lite") -> Optional[str]:
-        """
-        Sends a request to Gemini with exponential backoff retries.
-        """
         base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         url = f"{base_url}?key={self.apiKey}"
         
+        combined_prompt = f"INSTRUCTION: {system_instruction}\n\nQUERY: {prompt}" if system_instruction else prompt
+
         payload = {
             "contents": [{
-                "parts": [{"text": prompt}]
-            }]
-        }
-        
-        if system_instruction:
-            payload["systemInstruction"] = {
-                "parts": [{"text": system_instruction}]
-            }
+                "role": "user",
+                "parts": [{"text": combined_prompt}]
+            }],
+            "tools": [
+                {
+                    "google_search": {} 
+                }
+            ],
 
-        # Exponential Backoff Implementation
+            "systemInstruction": {
+                "parts": [{"text": system_instruction}]
+            } if system_instruction else None
+        }
+
         retries = 5
         for i in range(retries):
             try:
