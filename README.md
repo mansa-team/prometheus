@@ -4,6 +4,9 @@ A immersive chatbot using augmented generation techniques linked to the [Mansa's
 
 With a full-on Chat History that can be integrated with the in-construction Mansa's main database and user data to provide the user a full chatbot experience inside our project that differs from just using normal chatbots like ChatGPT or Gemini, even tho the Large Language Model (LLM) used is Google's Gemini because of the use of exclusive and updated data on the Brazilian Stocks Market.
 
+> [!IMPORTANT]
+> New changes made to this project are now made in the [Mansa's Server](https://github.com/mansa-team/server) repository, consult it for more info
+
 ## Installation
 1. Clone the repository:
     ```bash
